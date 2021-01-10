@@ -1,5 +1,6 @@
 {
   "userName": "yourUsername",
+  "httpPort": 58497,
   "watchers": [
     {
       "name": "notify all posts",
