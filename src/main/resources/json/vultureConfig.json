@@ -15,7 +15,8 @@
           "arguments": {
             "title": "",
             "content": "there's a new post in r/all",
-            "downloadPath": ""
+            "downloadPath": "",
+            "fileFormat": ""
           }
         }
       ]

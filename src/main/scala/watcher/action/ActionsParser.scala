@@ -15,7 +15,12 @@ case object ActionsParser {
       case a: MessageAction => Some(new MessageAction(jsonAction.arguments.content.getOrElse(throw new Exception("missing title argument"))
         , jsonAction.arguments.content.getOrElse(throw new Exception("missing content argument"))))
       case b: CommentAction => Some(new CommentAction(jsonAction.arguments.content.getOrElse("missing content argument")))
-      case d: DownloadAction => Some(new DownloadAction(jsonAction.arguments.downloadPath.getOrElse(throw new Exception("missing path argument"))))
+      case d: DownloadAction =>
+        if (jsonAction.arguments.fileFormat.isDefined) {
+          Some(new DownloadAction(jsonAction.arguments.downloadPath.getOrElse(throw new Exception("missing path argument")), jsonAction.arguments.fileFormat.get))
+        } else {
+          Some(new DownloadAction(jsonAction.arguments.downloadPath.getOrElse(throw new Exception("missing path argument"))))
+        }
       case e: NotifyAction => Some(new NotifyAction(jsonAction.arguments.content.getOrElse("no additional info configured")))
       //general catch all
       case c: SubmissionAction => Some(c.create(Seq()))

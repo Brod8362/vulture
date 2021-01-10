@@ -9,7 +9,8 @@ import java.io.{File, FileOutputStream}
 import java.net.URL
 import java.nio.file.{Files, Paths, StandardCopyOption}
 
-class DownloadAction(pathStr: String) extends SubmissionAction {
+class DownloadAction(pathStr: String, namingFormat: String = "%id%") extends SubmissionAction {
+
   override def name: String = "download"
 
   override def arguments: Seq[Any] = Seq(pathStr)
@@ -18,7 +19,7 @@ class DownloadAction(pathStr: String) extends SubmissionAction {
     val postId = post.getUniqueId
     val path = new File(pathStr)
     path.mkdirs()
-    val hasContent = post.getEmbeddedMedia!= null && post.getEmbeddedMedia.getOEmbed!=null
+    val hasContent = post.getEmbeddedMedia != null && post.getEmbeddedMedia.getOEmbed!=null
     val json = Json.obj(
       "postId" -> postId,
       "permalink" -> post.getPermalink,
@@ -34,7 +35,8 @@ class DownloadAction(pathStr: String) extends SubmissionAction {
       "hasOtherContent" -> hasContent,
       "otherContentUrl" -> {if (hasContent) post.getEmbeddedMedia.getOEmbed.getUrl else null}
     )
-    val jfos = new FileOutputStream(new File(path.getAbsolutePath+s"/$postId.json"))
+    val filename = formatFilename(post)
+    val jfos = new FileOutputStream(new File(path.getAbsolutePath+s"/$filename"))
     jfos.write(json.toString().getBytes())
     jfos.close()
 
@@ -45,4 +47,17 @@ class DownloadAction(pathStr: String) extends SubmissionAction {
   }
 
   override def create(args: Seq[Any]): SubmissionAction = new DownloadAction(args.head.toString)
+
+  private def formatFilename(post: Submission): String = {
+    val replacements = Map(
+      "%id%" -> post.getUniqueId,
+      "%author%" -> post.getAuthor,
+      "%title%" -> post.getTitle,
+      "%subreddit%" -> post.getSubreddit,
+      "%flair%" -> post.getLinkFlairText,
+    )
+    var str = namingFormat+""
+    replacements.foreach(t => str = str.replace(t._1, t._2))
+    str+".json"
+  }
 }
