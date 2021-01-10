@@ -87,7 +87,7 @@ __Action Options__
   //Action type. See table below for a list of all actions and their arguments
   "type": "nothing",
   //An array of arguments. Required, but may be empty.
-  "arguments": []
+  "arguments": {}
 }
 ```
 
