@@ -13,6 +13,12 @@ libraryDependencies ++= Seq("net.dean.jraw" % "JRAW" % "1.1.0",
 
 enablePlugins(SbtJsonPlugin)
 
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
+
+
 //sbt-json settings
 
 jsonInterpreter := plainCaseClasses.withPlayJsonFormats
