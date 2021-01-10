@@ -11,7 +11,7 @@
       "maxPosts": 20,
       "actions": [
         {
-          "type": "notify",
+          "type": "nothing",
           "arguments": {
             "title": "",
             "content": "there's a new post in r/all",
