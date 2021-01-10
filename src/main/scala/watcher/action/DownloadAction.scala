@@ -20,6 +20,7 @@ class DownloadAction(pathStr: String, namingFormat: String = "%id%") extends Sub
     val path = new File(pathStr)
     path.mkdirs()
     val hasContent = post.getEmbeddedMedia != null && post.getEmbeddedMedia.getOEmbed!=null
+    val hasRedditImage = post.getSelfText == null || post.getSelfText == ""
     val json = Json.obj(
       "postId" -> postId,
       "permalink" -> post.getPermalink,
@@ -33,7 +34,8 @@ class DownloadAction(pathStr: String, namingFormat: String = "%id%") extends Sub
       "nsfw" -> post.isNsfw,
       "thumbnailUrl" -> post.getThumbnail,
       "hasOtherContent" -> hasContent,
-      "otherContentUrl" -> {if (hasContent) post.getEmbeddedMedia.getOEmbed.getUrl else null}
+      "otherContentUrl" -> {if (hasContent) post.getEmbeddedMedia.getOEmbed.getUrl else null},
+      "hasRedditImage" -> hasRedditImage
     )
     val filename = formatFilename(post)
     val jfos = new FileOutputStream(new File(path.getAbsolutePath+s"/$filename"))
@@ -41,12 +43,19 @@ class DownloadAction(pathStr: String, namingFormat: String = "%id%") extends Sub
     jfos.close()
 
     if (hasContent) {
-      val is = new URL(post.getEmbeddedMedia.getOEmbed.getUrl).openStream()
-      Files.copy(is, Paths.get(post.getEmbeddedMedia.getOEmbed.getUrl.split("/").last), StandardCopyOption.REPLACE_EXISTING)
+      saveFile(post.getEmbeddedMedia.getOEmbed.getUrl)
+    }
+    if (hasRedditImage) {
+      saveFile(post.getUrl)
     }
   }
 
   override def create(args: Seq[Any]): SubmissionAction = new DownloadAction(args.head.toString)
+
+  private def saveFile(url: String): Unit = {
+    val is = new URL(url).openStream()
+    Files.copy(is, Paths.get(pathStr+"/"+url.split("/").last), StandardCopyOption.REPLACE_EXISTING)
+  }
 
   /**
    * Format the filename for the post json file. Available formats:
