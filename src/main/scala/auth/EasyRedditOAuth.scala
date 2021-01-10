@@ -1,5 +1,4 @@
-package pw.byakuren.redditmonitor
-package auth
+package pw.byakuren.redditmonitor.auth
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import net.dean.jraw.RedditClient

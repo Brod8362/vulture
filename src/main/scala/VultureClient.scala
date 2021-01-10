@@ -8,6 +8,7 @@ import net.dean.jraw.models.Subreddit
 import net.dean.jraw.references.SubredditReference
 
 import java.util.concurrent.Executors
+import java.util.logging.Logger
 
 class VultureClient(client: RedditClient)(implicit config: VultureConfig) extends Runnable {
 
@@ -17,6 +18,8 @@ class VultureClient(client: RedditClient)(implicit config: VultureConfig) extend
 
   private val monitoredSubreddits: Seq[SubredditReference] = vultureWatchers.map(_.subreddit)
   private val monitoredSubredditMap: Map[SubredditReference, Seq[VultureWatcher]] = vultureWatchers.groupBy(_.subreddit)
+
+  private val logger = Logger.getLogger("VultureClient")
 
   override def run(): Unit = {
 
