@@ -1,10 +1,10 @@
 package pw.byakuren.redditmonitor
 package watcher.action
 
-trait Action {
+trait Action[T] {
 
   def name: String
   def arguments: Seq[Any]
-  def run(): Unit
+  def run(obj: T): Unit
 
 }
