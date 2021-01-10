@@ -1,5 +1,4 @@
 {
-  "httpPort": 58497,
   "maxThreads": 32,
   "watchers": [
     {
