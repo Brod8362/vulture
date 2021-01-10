@@ -21,7 +21,7 @@ case object ActionsParser {
         } else {
           Some(new DownloadAction(jsonAction.arguments.downloadPath.getOrElse(throw new Exception("missing path argument"))))
         }
-      case e: NotifyAction => Some(new NotifyAction(jsonAction.arguments.content.getOrElse("no additional info configured")))
+      case e: NotifyAction => Some(new NotifyAction(jsonAction.arguments.content.getOrElse("no additional info configured"), jsonAction.arguments.destUser))
       //general catch all
       case c: SubmissionAction => Some(c.create(Seq()))
       case _ => None
