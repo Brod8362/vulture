@@ -20,7 +20,7 @@ class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditRefe
    * @param post Post to check and potentially act on
    * @return whether or not the client acted
    */
-  def checkThenAct(post: Submission): Boolean = {
+  def checkThenAct(post: Submission)(implicit client: RedditClient): Boolean = {
     val b = willAct(post)
     if (b) {
       act(post)
@@ -52,8 +52,8 @@ class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditRefe
    * Perform the predefined actions on a post
    * @param post Post to act upon
    */
-  def act(post: Submission): Unit = {
-
+  def act(post: Submission)(implicit client: RedditClient): Unit = {
+    actions.foreach(_.run(post))
   }
 
 

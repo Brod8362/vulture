@@ -13,7 +13,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters._
 
-class VultureClient(client: RedditClient)(implicit config: VultureConfig) extends Runnable {
+class VultureClient(implicit client: RedditClient, config: VultureConfig) extends Runnable {
 
   private val internalThreadPool = Executors.newScheduledThreadPool(config.maxThreads.toInt)
 

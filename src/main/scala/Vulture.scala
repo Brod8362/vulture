@@ -58,8 +58,9 @@ object Vulture extends App {
     case Success(clientOption) =>
       clientOption match {
         case Some(client) =>
+          implicit val _client: RedditClient = client
           logger.info("Entering execution loop")
-          val vultureClient = new VultureClient(client)
+          val vultureClient = new VultureClient()
           vultureClient.run()
         case None =>
           logger.severe("big ouchie")
