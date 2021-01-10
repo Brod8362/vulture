@@ -9,7 +9,9 @@ import net.dean.jraw.http.{OkHttpNetworkAdapter, UserAgent}
 import net.dean.jraw.oauth.{Credentials, OAuthHelper}
 import play.api.libs.json.Json
 
+import java.awt.Desktop
 import java.io.{File, FileInputStream, FileOutputStream}
+import java.net.URL
 import java.util.logging.{LogManager, Logger}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -52,7 +54,12 @@ object Vulture extends App {
   val redditClientFuture: Future[Option[RedditClient]] = EasyRedditOAuth.authenticate(helper)
   //TODO store token or w/e so you dont have to authenticate every time
 
-  println(authUrl)
+    Option(Desktop.getDesktop) match {
+    case Some(desktop) if desktop.isSupported(Desktop.Action.BROWSE) =>
+      desktop.browse(new URL(authUrl).toURI)
+    case _ =>
+      println(s"Click here to authenticate: $authUrl")
+  }
 
   redditClientFuture onComplete {
     case Success(clientOption) =>
