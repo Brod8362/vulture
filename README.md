@@ -39,7 +39,7 @@ Options
 =======
 __Root Options__
 
-```json
+```json5
 //Control how many threads are allowed to exist at once.
 //Best to leave this alone, unless you are runing a lot of monitors at once.
 "maxThreads": 32,
@@ -50,7 +50,7 @@ __Root Options__
 
 __Watcher Options__
 
-```json
+```json5
 {
   "name": "name of your watcher", //Required.
   "subreddit": "linux", //The name of your subreddit, WITHOUT the r/ in front. Required.
@@ -82,7 +82,7 @@ __Watcher Options__
 
 __Action Options__
 
-```json
+```json5
 {
   //Action type. See table below for a list of all actions and their arguments
   "type": "nothing",
