@@ -10,7 +10,7 @@ import net.dean.jraw.oauth.{Credentials, OAuthHelper}
 import play.api.libs.json.Json
 
 import java.io.{File, FileInputStream, FileOutputStream}
-import java.util.logging.Logger
+import java.util.logging.{LogManager, Logger}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -20,9 +20,11 @@ object Vulture extends App {
 
   private val CONFIG_FILE_PATH = "vultureConfig.json"
 
-  val logger = Logger.getLogger("Vulture")
+  val logger = Logger.getLogger("Vulture MainThread")
+
 
   def exportDefaultConfig(): Unit = {
+    logger.info("Exporting default config")
     val resource = scala.io.Source.fromURL(getClass.getClassLoader.getResource("json/vultureConfig.json"))
     val fos = new FileOutputStream(new File(CONFIG_FILE_PATH))
     fos.write(resource.mkString.getBytes)
@@ -30,11 +32,13 @@ object Vulture extends App {
   }
 
   if (!new File(CONFIG_FILE_PATH).exists) {
+    logger.info("Config file missing")
     exportDefaultConfig()
   }
 
   val configFile = new File(CONFIG_FILE_PATH)
   implicit val config: VultureConfig = Json.parse(new FileInputStream(configFile)).as[VultureConfig]
+  logger.info(s"Loaded config file $CONFIG_FILE_PATH")
 
   val userAgent = new UserAgent("Vulture", "pw.byakuren.redditmonitor", "v0.1", "brod8362")
   val networkAdapter = new OkHttpNetworkAdapter(userAgent)
@@ -54,14 +58,14 @@ object Vulture extends App {
     case Success(clientOption) =>
       clientOption match {
         case Some(client) =>
-          println("entering execution loop")
+          logger.info("Entering execution loop")
           val vultureClient = new VultureClient(client)
           vultureClient.run()
         case None =>
           println(s"big ouchie")
       }
     case Failure(t) =>
-      println(s"Error occurred when authenticating. ($t)")
+      logger.severe(s"Error occurred when authenticating. ($t)")
       t.printStackTrace()
   }
 

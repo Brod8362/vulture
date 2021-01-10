@@ -1,22 +1,26 @@
 package pw.byakuren.redditmonitor.auth
 
 import java.net.InetSocketAddress
-
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import net.dean.jraw.RedditClient
 import net.dean.jraw.oauth.StatefulAuthHelper
 
+import java.util.logging.{LogManager, Logger}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
 
 object EasyRedditOAuth {
+
   def authenticate(helper: StatefulAuthHelper): Future[Option[RedditClient]] = {
+    val logger = Logger.getLogger("RedditOAuth")
+    logger.info("Spawning HTTP server")
     val internalServer = HttpServer.create(new InetSocketAddress("localhost", 58497), 0)
     val rcs = Promise[String]
 
     internalServer.createContext("/redditAuth", new HttpHandler() {
-      override def handle(httpExchange: HttpExchange): Unit =
+      override def handle(httpExchange: HttpExchange): Unit = {
+        logger.info("Received HTTP exchange")
         rcs.complete(Try {
           val data = httpExchange.getRequestURI.getQuery.split("&").map(i => {
             val r = i.indexOf("=")
@@ -25,22 +29,25 @@ object EasyRedditOAuth {
             (f, s)
           }).toMap
           if (data.contains("error")) {
+            logger.warning("Authentication failure")
             val error = data("error")
             serveFailurePage(httpExchange, error)
             throw new Exception(s"data contained 'error': $error")
           } else {
+            logger.info("Authenticated successfully")
             serveSuccessPage(httpExchange)
-            "http://localhost:58497" + httpExchange.getRequestURI.toString
+            "http://" + httpExchange.getRequestHeaders.getFirst("Host") + httpExchange.getRequestURI.toString
           }
         })
+      }
 
     })
     internalServer.setExecutor(null)
     internalServer.start()
 
+    rcs.future.onComplete(_ => internalServer.stop(0))
     rcs.future.map { str =>
       val opt = Option(helper.onUserChallenge(str))
-      internalServer.stop(0)
       opt
     }
   }
