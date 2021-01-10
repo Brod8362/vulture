@@ -22,6 +22,7 @@ class VultureClient(client: RedditClient)(implicit config: VultureConfig) extend
   private val monitoredSubredditMap: Map[SubredditReference, Seq[VultureWatcher]] = vultureWatchers.groupBy(_.subreddit)
   private def monitoredSubreddits: Seq[SubredditReference] = monitoredSubredditMap.keys.toSeq
 
+  //todo memory concern: this will grow in size unbounded until OOM.
   private val seenPosts: Map[SubredditReference, mutable.HashSet[String]] =
     monitoredSubreddits.map((_, new mutable.HashSet[String]())).toMap
 
@@ -29,7 +30,7 @@ class VultureClient(client: RedditClient)(implicit config: VultureConfig) extend
     monitoredSubreddits.map(sr => (sr, new LinkedBlockingQueue[Submission])).toMap
 
   //This is here to ensure a post won't be acted on several times
-  private val actedOnIds: mutable.Seq[String] = new ArrayBuffer[String]()
+  private var actedOnIds: ArrayBuffer[String] = new ArrayBuffer[String]()
 
   private val subredditIntervals: Map[SubredditReference, Int] = vultureWatchers.groupMap(_.subreddit)(vw => vw.interval)
     .map(t => (t._1, t._2.sortWith(_>_).head))
@@ -42,12 +43,24 @@ class VultureClient(client: RedditClient)(implicit config: VultureConfig) extend
       logger.info(s"r/${subreddit.getSubreddit} will fetch new posts every $interval seconds")
       internalThreadPool.scheduleAtFixedRate(() => {
         val posts = findNewPosts(subreddit)
-        newPosts(subreddit).addAll(posts.asJavaCollection)
+        posts.foreach(
+          newPosts(subreddit).put
+        ) //put all posts into the queue (blocking)
         seenPosts(subreddit).addAll(posts.map(_.getUniqueId))
       },
         0, interval, TimeUnit.SECONDS)
     })
-
+    vultureWatchers.foreach(watcher => {
+      internalThreadPool.execute(() => {
+        while (true) {
+          val post = newPosts(watcher.subreddit).take()
+          if (!actedOnIds.contains(post.getUniqueId) && watcher.checkThenAct(post)) {
+            logger.fine(s"Handling post ${post.getUniqueId} from r/${post.getSubreddit}")
+            actedOnIds += post.getUniqueId
+          }
+        }
+      })
+    })
   }
 
   def findNewPosts(subreddit: SubredditReference): Set[Submission] = {

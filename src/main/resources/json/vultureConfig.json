@@ -9,6 +9,7 @@
       "contentRegex": ".*",
       "matchEither": false,
       "checkInterval": 30,
+      "maxPosts": 20,
       "actions": [
         {
           "type": "notify",

@@ -7,9 +7,13 @@ import net.dean.jraw.models.Submission
 import net.dean.jraw.references.SubredditReference
 import pw.byakuren.redditmonitor.watcher.action.Action
 
+import java.util.logging.Logger
+
 //todo add actions once they're implemented
-class VultureWatcher(val name: String, val subreddit: SubredditReference, val interval: Int, matchEither: Boolean,
-                     titleRegex: String, contentRegex: String, actions: Seq[Action[Submission]]) {
+class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditReference, val interval: Int, matchEither: Boolean,
+                     maxPosts: Int, titleRegex: String, contentRegex: String, actions: Seq[Action[Submission]]) {
+
+  private val logger = Logger.getLogger(s"VultureWatcher(r/${subreddit.getSubreddit})")
 
   /**
    * Check if the client should act on a post, and act on it if it should.
@@ -49,7 +53,7 @@ class VultureWatcher(val name: String, val subreddit: SubredditReference, val in
    * @param post Post to act upon
    */
   def act(post: Submission): Unit = {
-    //todo implement
+
   }
 
 
@@ -57,12 +61,17 @@ class VultureWatcher(val name: String, val subreddit: SubredditReference, val in
 
 object VultureWatcher {
 
+  private var nextId = -1
+
   def fromConfigWatcher(watcher: Watchers, client: RedditClient): VultureWatcher = {
+    nextId+=1
     new VultureWatcher(
+      nextId,
       watcher.name,
       client.subreddit(watcher.subreddit),
       watcher.checkInterval.getOrElse(30.0).toInt,
       watcher.matchEither.getOrElse(false),
+      watcher.maxPosts.getOrElse(20.0).toInt,
       watcher.titleRegex.getOrElse(".*"),
       watcher.contentRegex.getOrElse(".*"),
       Seq() //todo parse actions
