@@ -1,0 +1,19 @@
+{
+  "userName": "yourUsername",
+  "watchers": [
+    {
+      "name": "notify all posts",
+      "subreddit": "all",
+      "titleRegex": ".*",
+      "contentRegex": ".*",
+      "actions": [
+        {
+          "type": "notify",
+          "arguments": {
+            "message": "there's a new post in r/all"
+          }
+        }
+      ]
+    }
+  ]
+}
