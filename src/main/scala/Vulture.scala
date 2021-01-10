@@ -62,7 +62,7 @@ object Vulture extends App {
           val vultureClient = new VultureClient(client)
           vultureClient.run()
         case None =>
-          println(s"big ouchie")
+          logger.severe("big ouchie")
       }
     case Failure(t) =>
       logger.severe(s"Error occurred when authenticating. ($t)")

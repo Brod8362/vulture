@@ -20,3 +20,4 @@ jsonInterpreter := plainCaseClasses.withPlayJsonFormats
 jsonOptionals += OptionalField("vultureConfig", "Watchers", "titleRegex")
 jsonOptionals += OptionalField("vultureConfig", "Watchers", "contentRegex")
 jsonOptionals += OptionalField("vultureConfig", "Watchers", "checkInterval")
+jsonOptionals += OptionalField("vultureConfig", "Watchers", "matchEither")
