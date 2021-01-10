@@ -25,7 +25,7 @@ object EasyRedditOAuth {
           val data = httpExchange.getRequestURI.getQuery.split("&").map(i => {
             val r = i.indexOf("=")
             val f = i.substring(0, r)
-            val s = i.substring(r+1, i.length)
+            val s = i.substring(r + 1, i.length)
             (f, s)
           }).toMap
           if (data.contains("error")) {
@@ -36,7 +36,7 @@ object EasyRedditOAuth {
           } else {
             logger.info("Authenticated successfully")
             serveSuccessPage(httpExchange)
-            "http://" + httpExchange.getRequestHeaders.getFirst("Host") + httpExchange.getRequestURI.toString
+            "http://localhost:58497" + httpExchange.getRequestURI.toString
           }
         })
       }
@@ -45,10 +45,9 @@ object EasyRedditOAuth {
     internalServer.setExecutor(null)
     internalServer.start()
 
-    rcs.future.onComplete(_ => internalServer.stop(0))
+    rcs.future.onComplete(_ => internalServer.stop(10))
     rcs.future.map { str =>
-      val opt = Option(helper.onUserChallenge(str))
-      opt
+      Option(helper.onUserChallenge(str))
     }
   }
 

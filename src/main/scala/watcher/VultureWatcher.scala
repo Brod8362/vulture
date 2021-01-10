@@ -8,7 +8,7 @@ import net.dean.jraw.references.SubredditReference
 import pw.byakuren.redditmonitor.watcher.action.Action
 
 //todo add actions once they're implemented
-class VultureWatcher(val name: String, val subreddit: SubredditReference, titleRegex: Option[String],
+class VultureWatcher(val name: String, val subreddit: SubredditReference, val interval: Int, titleRegex: Option[String],
                      contentRegex: Option[String], actions: Seq[Action[Submission]]) {
 
   def checkThenAct(post: Submission): Boolean = {
@@ -37,6 +37,7 @@ object VultureWatcher {
     new VultureWatcher(
       watcher.name,
       client.subreddit(watcher.subreddit),
+      watcher.checkInterval.toInt,
       Option(watcher.titleRegex),
       Option(watcher.contentRegex),
       Seq() //todo parse actions
