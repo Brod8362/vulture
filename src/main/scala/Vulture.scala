@@ -32,13 +32,14 @@ object Vulture extends App {
   val configFile = new File(CONFIG_FILE_PATH)
   val config = Json.parse(new FileInputStream(configFile)).as[VultureConfig]
 
-  val userAgent = new UserAgent("Vulture", "pw.byakuren.redditmonitor", "v0.1", config.userName)
+  val userAgent = new UserAgent("Vulture", "pw.byakuren.redditmonitor", "v0.1", "brod8362")
   val networkAdapter = new OkHttpNetworkAdapter(userAgent)
   val credentials = Credentials.installedApp("Bjbe1Yeh16iPxA", s"http://localhost:58497/redditAuth")
 
   //Before showing the user the URL, the HTTP server needs to be running to listen for the redirect.
   val helper = OAuthHelper.interactive(networkAdapter, credentials)
-  val authUrl = helper.getAuthorizationUrl(true, false, "save", "vote", "read", "privatemessages")
+  //https://www.reddit.com/dev/api/oauth/ for a list of all scopes
+  val authUrl = helper.getAuthorizationUrl(true, false, "save", "vote", "read", "privatemessages", "identity")
 
   val redditClientFuture = EasyRedditOAuth.authenticate(helper)
 

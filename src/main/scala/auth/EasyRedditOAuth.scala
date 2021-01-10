@@ -27,18 +27,18 @@ object EasyRedditOAuth {
           }).toMap
           if (data.contains("error")) {
             val error = data("error")
-            val response = s"There was an error authenticating: $error"
-            httpExchange.sendResponseHeaders(200, response.length)
-            val os = httpExchange.getResponseBody
-            os.write(response.getBytes())
-            os.close()
+            try {
+              serveFailurePage(httpExchange, error)
+            } catch {
+              case e: Exception => println("failed to serve failure page")
+            }
             ready=true
           } else {
-            val response = s"Authenticated successfully"
-            httpExchange.sendResponseHeaders(200, response.length)
-            val os = httpExchange.getResponseBody
-            os.write(response.getBytes())
-            os.close()
+            try {
+              serveSuccessPage(httpExchange)
+            } catch {
+              case e: Exception => println("failed to serve success page")
+            }
             rcs = Some("http://localhost:58497"+httpExchange.getRequestURI.toString)
             ready=true
           }
@@ -62,6 +62,24 @@ object EasyRedditOAuth {
           None
       }
     }
+  }
+
+  private def serveSuccessPage(httpExchange: HttpExchange): Unit = {
+    val pageRes = getClass.getResourceAsStream("html/good.html")
+    val content = pageRes.readAllBytes()
+    httpExchange.sendResponseHeaders(200, content.size)
+    val os = httpExchange.getResponseBody
+    os.write(content)
+    os.close()
+  }
+
+  private def serveFailurePage(httpExchange: HttpExchange, error: String): Unit = {
+    val pageRes = getClass.getResourceAsStream("html/bad.html")
+    val content = new String(pageRes.readAllBytes()).replace("$error", error).getBytes
+    httpExchange.sendResponseHeaders(200, content.size)
+    val os = httpExchange.getResponseBody
+    os.write(content)
+    os.close()
   }
 
 }
