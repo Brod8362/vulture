@@ -1,18 +1,18 @@
 package pw.byakuren.redditmonitor
 
 
+import auth.EasyRedditOAuth
+
 import jsonmodels.vultureconfig.VultureConfig
 import net.dean.jraw.RedditClient
 import net.dean.jraw.http.{OkHttpNetworkAdapter, UserAgent}
 import net.dean.jraw.oauth.{Credentials, OAuthHelper}
 import play.api.libs.json.Json
-import pw.byakuren.redditmonitor.auth.EasyRedditOAuth
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.util.logging.Logger
-import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 
@@ -62,6 +62,7 @@ object Vulture extends App {
       }
     case Failure(t) =>
       println(s"Error occurred when authenticating. ($t)")
+      t.printStackTrace()
   }
 
 }

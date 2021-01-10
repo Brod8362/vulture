@@ -18,8 +18,9 @@ class VultureClient(client: RedditClient)(implicit config: VultureConfig) extend
 
   private val vultureWatchers = VultureWatcher.loadAllFromConfiguration(client)
 
-  private val monitoredSubreddits: Seq[SubredditReference] = vultureWatchers.map(_.subreddit)
+
   private val monitoredSubredditMap: Map[SubredditReference, Seq[VultureWatcher]] = vultureWatchers.groupBy(_.subreddit)
+  private val monitoredSubreddits: Seq[SubredditReference] = monitoredSubredditMap.keys.toSeq
 
   private val newPosts: Map[SubredditReference, BlockingQueue[Submission]] =
     monitoredSubreddits.map(sr => (sr, new LinkedBlockingQueue[Submission])).toMap

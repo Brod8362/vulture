@@ -39,7 +39,6 @@ object EasyRedditOAuth {
     internalServer.start()
 
     rcs.future.map { str =>
-      println(str)
       val opt = Option(helper.onUserChallenge(str))
       internalServer.stop(0)
       opt
@@ -47,7 +46,7 @@ object EasyRedditOAuth {
   }
 
   private def serveSuccessPage(httpExchange: HttpExchange): Unit = {
-    val pageRes = getClass.getResourceAsStream("html/good.html")
+    val pageRes = getClass.getClassLoader.getResourceAsStream("html/good.html")
     val content = pageRes.readAllBytes()
     httpExchange.sendResponseHeaders(200, content.size)
     val os = httpExchange.getResponseBody
@@ -56,7 +55,7 @@ object EasyRedditOAuth {
   }
 
   private def serveFailurePage(httpExchange: HttpExchange, error: String): Unit = {
-    val pageRes = getClass.getResourceAsStream("html/bad.html")
+    val pageRes = getClass.getClassLoader.getResourceAsStream("html/bad.html")
     val content = new String(pageRes.readAllBytes()).replace("$error", error).getBytes
     httpExchange.sendResponseHeaders(200, content.size)
     val os = httpExchange.getResponseBody

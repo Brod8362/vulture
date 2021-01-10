@@ -12,11 +12,11 @@ class VultureWatcher(val name: String, val subreddit: SubredditReference, titleR
                      contentRegex: Option[String], actions: Seq[Action[Submission]]) {
 
   def checkThenAct(post: Submission): Boolean = {
-    val willAct = willAct(post)
-    if (willAct) {
-      willAct(post)
+    val b = willAct(post)
+    if (b) {
+      act(post)
     }
-    willAct
+    b
   }
 
   def willAct(post: Submission): Boolean = {
