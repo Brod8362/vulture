@@ -11,12 +11,13 @@ import java.util.logging.Logger
 
 //todo add actions once they're implemented
 class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditReference, val interval: Int, matchEither: Boolean,
-                     maxPosts: Int, titleRegex: String, contentRegex: String, actions: Seq[SubmissionAction]) {
+                     val maxPosts: Int, titleRegex: String, contentRegex: String, actions: Seq[SubmissionAction]) {
 
   private val logger = Logger.getLogger(s"VultureWatcher-$id(r/${subreddit.getSubreddit})")
 
   /**
    * Check if the client should act on a post, and act on it if it should.
+   *
    * @param post Post to check and potentially act on
    * @return whether or not the client acted
    */
@@ -30,6 +31,7 @@ class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditRefe
 
   /**
    * Determines whether or not the bot should 'act' on a post, using the predefined actions. This considers the matchEither option.
+   *
    * @param post Post to check against
    * @return whether or not the client should act
    */
@@ -50,10 +52,19 @@ class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditRefe
 
   /**
    * Perform the predefined actions on a post
+   *
    * @param post Post to act upon
    */
   def act(post: Submission)(implicit client: RedditClient): Unit = {
-    actions.foreach(_.run(post))
+    actions.foreach(a => {
+      try {
+        a.run(post)
+      } catch {
+        case e: Exception =>
+          logger.severe(s"Error running '$name'[${a.name}] on ${post.getUniqueId}: ${e.getMessage}")
+          e.printStackTrace()
+      }
+    })
   }
 }
 
@@ -62,7 +73,7 @@ object VultureWatcher {
   private var nextId = -1
 
   def fromConfigWatcher(watcher: Watchers, client: RedditClient): VultureWatcher = {
-    nextId+=1
+    nextId += 1
     new VultureWatcher(
       nextId,
       watcher.name,

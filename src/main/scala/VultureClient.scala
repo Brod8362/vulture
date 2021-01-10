@@ -34,16 +34,20 @@ class VultureClient(implicit client: RedditClient, config: VultureConfig) extend
   private var actedOnIds: ArrayBuffer[String] = new ArrayBuffer[String]()
 
   private val subredditIntervals: Map[SubredditReference, Int] = vultureWatchers.groupMap(_.subreddit)(vw => vw.interval)
-    .map(t => (t._1, t._2.sortWith(_ > _).head))
+    .map(t => (t._1, t._2.sortWith(_ > _).head)) //get smallest of all watchers
+
+  private val subredditMaxFetch: Map[SubredditReference, Int] = vultureWatchers.groupMap(_.subreddit)(vw => vw.maxPosts)
+    .map(t => (t._1, t._2.sortWith(_ < _).head)) //get largest of all watchers
 
   private val logger = Logger.getLogger("VultureClient")
 
   override def run(): Unit = {
     monitoredSubreddits.foreach(subreddit => {
       val interval = subredditIntervals(subreddit)
-      logger.info(s"r/${subreddit.getSubreddit} will fetch new posts every $interval seconds")
+      val maxFetch = subredditMaxFetch(subreddit)
+      logger.info(s"r/${subreddit.getSubreddit} will fetch up to $maxFetch new posts every $interval seconds")
       internalThreadPool.scheduleAtFixedRate(() => {
-        val posts = findNewPosts(subreddit)
+        val posts = findNewPosts(subreddit, maxFetch)
         posts.foreach(
           newPosts(subreddit).put
         ) //put all posts into the queue (blocking)
@@ -64,9 +68,9 @@ class VultureClient(implicit client: RedditClient, config: VultureConfig) extend
     })
   }
 
-  def findNewPosts(subreddit: SubredditReference): Set[Submission] = {
+  def findNewPosts(subreddit: SubredditReference, maxFetch: Int): Set[Submission] = {
     logger.info(s"Fetching new posts for r/${subreddit.getSubreddit}")
-    val posts = subreddit.posts().sorting(SubredditSort.NEW).limit(20 /* Make this a config option?*/).build()
+    val posts = subreddit.posts().sorting(SubredditSort.NEW).limit(maxFetch).build()
     val currentNewPosts = posts.accumulateMerged(1).asScala.filter(post => !seenPosts(subreddit).contains(post.getUniqueId))
     logger.info(s"r/${subreddit.getSubreddit} has ${currentNewPosts.size} new posts")
     currentNewPosts.toSet

@@ -48,16 +48,26 @@ class DownloadAction(pathStr: String, namingFormat: String = "%id%") extends Sub
 
   override def create(args: Seq[Any]): SubmissionAction = new DownloadAction(args.head.toString)
 
+  /**
+   * Format the filename for the post json file. Available formats:
+   * %id% -> id of post
+   * %author% -> username of post author
+   * %title% -> title of post
+   * %subreddit% -> post subreddit
+   * %flair% -> post flair
+   * @param post post to get format info from
+   * @return formatted filename
+   */
   private def formatFilename(post: Submission): String = {
     val replacements = Map(
-      "%id%" -> post.getUniqueId,
-      "%author%" -> post.getAuthor,
-      "%title%" -> post.getTitle,
-      "%subreddit%" -> post.getSubreddit,
-      "%flair%" -> post.getLinkFlairText,
+      "%id%" -> Option(post.getUniqueId),
+      "%author%" -> Option(post.getAuthor),
+      "%title%" -> Option(post.getTitle),
+      "%subreddit%" -> Option(post.getSubreddit),
+      "%flair%" -> Option(post.getLinkFlairText),
     )
     var str = namingFormat+""
-    replacements.foreach(t => str = str.replace(t._1, t._2))
+    replacements.foreach(t => str = str.replace(t._1, t._2.getOrElse("null")))
     str+".json"
   }
 }
