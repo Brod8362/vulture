@@ -5,13 +5,13 @@ import jsonmodels.vultureconfig.{VultureConfig, Watchers}
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.Submission
 import net.dean.jraw.references.SubredditReference
-import pw.byakuren.redditmonitor.watcher.action.Action
+import pw.byakuren.redditmonitor.watcher.action.SubmissionAction
 
 import java.util.logging.Logger
 
 //todo add actions once they're implemented
 class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditReference, val interval: Int, matchEither: Boolean,
-                     maxPosts: Int, titleRegex: String, contentRegex: String, actions: Seq[Action[Submission]]) {
+                     maxPosts: Int, titleRegex: String, contentRegex: String, actions: Seq[SubmissionAction]) {
 
   private val logger = Logger.getLogger(s"VultureWatcher(r/${subreddit.getSubreddit})")
 

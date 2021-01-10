@@ -22,3 +22,7 @@ jsonOptionals += OptionalField("vultureConfig", "Watchers", "contentRegex")
 jsonOptionals += OptionalField("vultureConfig", "Watchers", "checkInterval")
 jsonOptionals += OptionalField("vultureConfig", "Watchers", "matchEither")
 jsonOptionals += OptionalField("vultureConfig", "Watchers", "maxPosts")
+
+jsonOptionals += OptionalField("vultureConfig", "Arguments", "title")
+jsonOptionals += OptionalField("vultureConfig", "Arguments", "content")
+jsonOptionals += OptionalField("vultureConfig", "Arguments", "downloadPath")
