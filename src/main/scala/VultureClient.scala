@@ -20,6 +20,7 @@ class VultureClient(implicit client: RedditClient, config: VultureConfig) extend
   private val vultureWatchers = VultureWatcher.loadAllFromConfiguration(client)
 
   private val monitoredSubredditMap: Map[SubredditReference, Seq[VultureWatcher]] = vultureWatchers.groupBy(_.subreddit)
+
   private def monitoredSubreddits: Seq[SubredditReference] = monitoredSubredditMap.keys.toSeq
 
   //todo memory concern: this will grow in size unbounded until OOM.
@@ -33,7 +34,7 @@ class VultureClient(implicit client: RedditClient, config: VultureConfig) extend
   private var actedOnIds: ArrayBuffer[String] = new ArrayBuffer[String]()
 
   private val subredditIntervals: Map[SubredditReference, Int] = vultureWatchers.groupMap(_.subreddit)(vw => vw.interval)
-    .map(t => (t._1, t._2.sortWith(_>_).head))
+    .map(t => (t._1, t._2.sortWith(_ > _).head))
 
   private val logger = Logger.getLogger("VultureClient")
 

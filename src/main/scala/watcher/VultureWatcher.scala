@@ -1,11 +1,11 @@
 package pw.byakuren.redditmonitor
 package watcher
 
-import jsonmodels.vultureconfig.{VultureConfig, Watchers}
+import jsonmodels.vultureconfig.{Actions, VultureConfig, Watchers}
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.Submission
 import net.dean.jraw.references.SubredditReference
-import pw.byakuren.redditmonitor.watcher.action.SubmissionAction
+import pw.byakuren.redditmonitor.watcher.action.{ActionsParser, SubmissionAction}
 
 import java.util.logging.Logger
 
@@ -13,7 +13,7 @@ import java.util.logging.Logger
 class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditReference, val interval: Int, matchEither: Boolean,
                      maxPosts: Int, titleRegex: String, contentRegex: String, actions: Seq[SubmissionAction]) {
 
-  private val logger = Logger.getLogger(s"VultureWatcher(r/${subreddit.getSubreddit})")
+  private val logger = Logger.getLogger(s"VultureWatcher-$id(r/${subreddit.getSubreddit})")
 
   /**
    * Check if the client should act on a post, and act on it if it should.
@@ -55,8 +55,6 @@ class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditRefe
   def act(post: Submission)(implicit client: RedditClient): Unit = {
     actions.foreach(_.run(post))
   }
-
-
 }
 
 object VultureWatcher {
@@ -74,13 +72,17 @@ object VultureWatcher {
       watcher.maxPosts.getOrElse(20.0).toInt,
       watcher.titleRegex.getOrElse(".*"),
       watcher.contentRegex.getOrElse(".*"),
-      Seq() //todo parse actions
+      parseActions(watcher.actions)
     )
   }
 
 
   def loadAllFromConfiguration(client: RedditClient)(implicit config: VultureConfig): Seq[VultureWatcher] = {
     config.watchers.map(fromConfigWatcher(_, client))
+  }
+
+  private def parseActions(actions: Seq[Actions]): Seq[SubmissionAction] = {
+    actions.map(ActionsParser.parse).map(_.getOrElse(throw new Exception(s"some action was not found, check config")))
   }
 
 }

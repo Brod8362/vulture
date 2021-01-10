@@ -3,7 +3,7 @@ package watcher.action
 
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.Submission
-import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.json.Json
 
 import java.io.{File, FileOutputStream}
 import java.net.URL
@@ -18,7 +18,7 @@ class DownloadAction(pathStr: String) extends SubmissionAction {
     val postId = post.getUniqueId
     val path = new File(pathStr)
     path.mkdirs()
-    val hasContent = post.getEmbeddedMedia.getOEmbed!=null
+    val hasContent = post.getEmbeddedMedia!= null && post.getEmbeddedMedia.getOEmbed!=null
     val json = Json.obj(
       "postId" -> postId,
       "permalink" -> post.getPermalink,
@@ -32,6 +32,7 @@ class DownloadAction(pathStr: String) extends SubmissionAction {
       "nsfw" -> post.isNsfw,
       "thumbnailUrl" -> post.getThumbnail,
       "hasOtherContent" -> hasContent,
+      "otherContentUrl" -> {if (hasContent) post.getEmbeddedMedia.getOEmbed.getUrl else null}
     )
     val jfos = new FileOutputStream(new File(path.getAbsolutePath+s"/$postId.json"))
     jfos.write(json.toString().getBytes())
