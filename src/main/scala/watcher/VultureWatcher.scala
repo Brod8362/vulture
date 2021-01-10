@@ -37,9 +37,9 @@ object VultureWatcher {
     new VultureWatcher(
       watcher.name,
       client.subreddit(watcher.subreddit),
-      watcher.checkInterval.toInt,
-      Option(watcher.titleRegex),
-      Option(watcher.contentRegex),
+      watcher.checkInterval.getOrElse(30.0).toInt,
+      Option(watcher.titleRegex.getOrElse("")),
+      Option(watcher.contentRegex.getOrElse("")),
       Seq() //todo parse actions
     )
   }

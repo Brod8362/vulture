@@ -19,7 +19,6 @@ class VultureClient(client: RedditClient)(implicit config: VultureConfig) extend
 
   private val vultureWatchers = VultureWatcher.loadAllFromConfiguration(client)
 
-
   private val monitoredSubredditMap: Map[SubredditReference, Seq[VultureWatcher]] = vultureWatchers.groupBy(_.subreddit)
   private def monitoredSubreddits: Seq[SubredditReference] = monitoredSubredditMap.keys.toSeq
 

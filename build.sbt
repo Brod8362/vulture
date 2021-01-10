@@ -12,4 +12,11 @@ libraryDependencies ++= Seq("net.dean.jraw" % "JRAW" % "1.1.0",
   "com.typesafe.play" %% "play-json" % "2.9.2")
 
 enablePlugins(SbtJsonPlugin)
+
+//sbt-json settings
+
 jsonInterpreter := plainCaseClasses.withPlayJsonFormats
+
+jsonOptionals += OptionalField("vultureConfig", "Watchers", "titleRegex")
+jsonOptionals += OptionalField("vultureConfig", "Watchers", "contentRegex")
+jsonOptionals += OptionalField("vultureConfig", "Watchers", "checkInterval")
