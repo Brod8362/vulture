@@ -50,7 +50,6 @@ object Vulture extends App {
 
   println(authUrl)
 
-  Await.ready(redditClientFuture, Duration.Inf)
   redditClientFuture onComplete {
     case Success(clientOption) =>
       clientOption match {
