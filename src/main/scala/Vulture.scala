@@ -20,7 +20,13 @@ import scala.util.{Failure, Success}
 
 object Vulture extends App {
 
-  private val CONFIG_FILE_PATH = "vultureConfig.json"
+  private val CONFIG_FILE_PATH: String = args.find(_.matches("--config=.*")) match {
+    case Some(cfgStr) =>
+      cfgStr.split("=").last
+    case None =>
+      "vultureConfig.json"
+  }
+
 
   val logger = Logger.getLogger("Vulture MainThread")
 
@@ -55,7 +61,7 @@ object Vulture extends App {
   //TODO store token or w/e so you dont have to authenticate every time
 
     Option(Desktop.getDesktop) match {
-    case Some(desktop) if desktop.isSupported(Desktop.Action.BROWSE) =>
+    case Some(desktop) if desktop.isSupported(Desktop.Action.BROWSE) && !args.contains("--noBrowser") =>
       desktop.browse(new URL(authUrl).toURI)
     case _ =>
       println(s"Click here to authenticate: $authUrl")
