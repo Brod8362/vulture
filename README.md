@@ -95,19 +95,20 @@ Learn more about regex [here](https://medium.com/factory-mind/regex-tutorial-a-s
 
 All arguments are required unless otherwise specified.
 
-| **Type**   | **Argument(s)**                             | **Behavior**                                                                                              | **Notes**                                 |
-|------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------|-------------------------------------------|
-| *nothing*  | -                                           | does nothing                                                                                              | intended for debugging                    |
-| *comment*  | `content`                                   | leaves a comment with content `content`.                                                                  |                                           |
-| *downvote* | -                                           | downvotes the post                                                                                        | *Please* don't make downvote bots.        |
-| *upvote*   | -                                           | upvotes the post                                                                                          | *Please* don't make upvote bots.          |
-| *message*  | `title`,`content`                           | sends a PM the author of the post with title `title` and content `content`                                |                                           |
-| *download* | `downloadPath`, `fileFormat` (optional)     | Download the post to path `downloadPath` with filename following `fileFormat`.                            | Will download images if available.        |
-| *notify*   | `content` (optional), `destUser` (optional) | Send a message to `destUser` (default is yourself) with content `content` followed by the post permalink. | Only ever point it at an account you own. |
-| *save*     | -                                           | Saves the post to your reddit account.                                                                    | Does not save to local disk               |
+| **Type**   | **Argument(s)**                             | **Behavior**                                                                                              | **Notes**                                      |
+|------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------|------------------------------------------------|
+| *nothing*  | -                                           | does nothing                                                                                              | intended for debugging                         |
+| *comment*  | `content`                                   | leaves a comment with content `content`.                                                                  |                                                |
+| *downvote* | -                                           | downvotes the post                                                                                        | *Please* don't make downvote bots.             |
+| *upvote*   | -                                           | upvotes the post                                                                                          | *Please* don't make upvote bots.               |
+| *message*  | `title`,`content`                           | sends a PM the author of the post with title `title` and content `content`                                |                                                |
+| *download* | `downloadPath`, `fileFormat` (optional)     | Download the post to path `downloadPath` with filename following `fileFormat`.                            | Will download images if available.             |
+| *notify*   | `content` (optional), `destUser` (optional) | Send a message to `destUser` (default is yourself) with content `content` followed by the post permalink. | Only ever point it at an account you own.      |
+| *save*     | -                                           | Saves the post to your reddit account.                                                                    | Does not save to local disk                    |
+| *webhook*  | `webhookUrl`                                | Sends the post to a discord webhook.                                                                      | May work with other webhooks, but is untested. |
 
 As an example, to add the action `message`, you would do
-```json
+```json5
 {
   "type": "message",
   "arguments": {
@@ -118,12 +119,22 @@ As an example, to add the action `message`, you would do
 ```
 
 To save a file to disk, you would do
-```json
+```json5
 {
   "type": "download",
   "arguments": {
     "fileFormat": "%title% %author%",
     "downloadPath": "redditDownloads"
+  }
+}
+```
+
+To integrate with a discord webhook, you would do
+```json5
+{
+  "type": "webhook",
+  "arguments": {
+    "webhookUrl": "https://canary.discord.com/api/webhooks/123456/7890abcdef"
   }
 }
 ```

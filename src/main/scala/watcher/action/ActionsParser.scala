@@ -6,7 +6,8 @@ import jsonmodels.vultureconfig.Actions
 case object ActionsParser {
 
   private val actions = Seq(new CommentAction(""), new DownvoteAction, new MessageAction("", ""),
-    new SaveAction(), new UpvoteAction, new DownloadAction(""), new NothingAction, new NotifyAction(""))
+    new SaveAction(), new UpvoteAction, new DownloadAction(""), new NothingAction, new NotifyAction(""),
+    new WebhookAction("https://canary.discord.com/api/webhooks/12345/67890abcdef"))
 
   val actionMap: Map[String, SubmissionAction] = actions.map(a => (a.name, a)).toMap
 
@@ -22,6 +23,8 @@ case object ActionsParser {
           Some(new DownloadAction(jsonAction.arguments.downloadPath.getOrElse(throw new Exception("missing path argument"))))
         }
       case e: NotifyAction => Some(new NotifyAction(jsonAction.arguments.content.getOrElse("no additional info configured"), jsonAction.arguments.destUser))
+      case f: WebhookAction =>
+        Some(new WebhookAction(jsonAction.arguments.webhookUrl.getOrElse("no webhook URL provided")))
       //general catch all
       case c: SubmissionAction => Some(c.create(Seq()))
       case _ => None

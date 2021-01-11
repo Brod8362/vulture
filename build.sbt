@@ -9,7 +9,8 @@ idePackagePrefix := Some("pw.byakuren.redditmonitor")
 resolvers += "jcenter-bintray" at "https://jcenter.bintray.com"
 
 libraryDependencies ++= Seq("net.dean.jraw" % "JRAW" % "1.1.0",
-  "com.typesafe.play" %% "play-json" % "2.9.2")
+  "com.typesafe.play" %% "play-json" % "2.9.2",
+  "club.minnced" % "discord-webhooks" % "0.5.4-rc")
 
 enablePlugins(SbtJsonPlugin)
 
@@ -34,3 +35,4 @@ jsonOptionals += OptionalField("vultureConfig", "Arguments", "content")
 jsonOptionals += OptionalField("vultureConfig", "Arguments", "downloadPath")
 jsonOptionals += OptionalField("vultureConfig", "Arguments", "fileFormat")
 jsonOptionals += OptionalField("vultureConfig", "Arguments", "destUser")
+jsonOptionals += OptionalField("vultureConfig", "Arguments", "webhookUrl")
