@@ -10,7 +10,7 @@ class SaveAction extends SubmissionAction {
   override def arguments: Seq[Any] = Seq()
 
   override def run(obj: Submission)(implicit client: RedditClient): Unit = {
-    client.submission(obj.getUniqueId).save()
+    client.submission(obj.getId).save()
   }
 
   override def create(args: Seq[Any]): SubmissionAction = new SaveAction
