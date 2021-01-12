@@ -3,6 +3,7 @@ package watcher.action
 
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.Submission
+import pw.byakuren.redditmonitor.AuthMode.AuthMode
 
 class UpvoteAction extends SubmissionAction {
   override def name: String = "upvote"
@@ -14,4 +15,6 @@ class UpvoteAction extends SubmissionAction {
   }
 
   override def create(args: Seq[Any]): SubmissionAction = new UpvoteAction
+
+  override def minimumAuthLevel: AuthMode = AuthMode.User
 }

@@ -1,5 +1,6 @@
 {
   "maxThreads": 32,
+  "authMode": "userless",
   "watchers": [
     {
       "name": "notify all posts",

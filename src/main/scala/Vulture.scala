@@ -12,13 +12,18 @@ import play.api.libs.json.Json
 import java.awt.Desktop
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.net.URL
+import java.util.UUID
 import java.util.logging.{LogManager, Logger}
+import javax.naming.ConfigurationException
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success, Try}
 
 
 object Vulture extends App {
+
+  private val CLIENT_ID = "Bjbe1Yeh16iPxA"
+  private val REDIRECT_URL = "http://localhost:58497/redditAuth"
 
   private val CONFIG_FILE_PATH: String = args.find(_.matches("--config=.*")) match {
     case Some(cfgStr) =>
@@ -26,7 +31,6 @@ object Vulture extends App {
     case None =>
       "vultureConfig.json"
   }
-
 
   val logger = Logger.getLogger("Vulture MainThread")
 
@@ -48,24 +52,49 @@ object Vulture extends App {
   implicit val config: VultureConfig = Json.parse(new FileInputStream(configFile)).as[VultureConfig]
   logger.info(s"Loaded config file $CONFIG_FILE_PATH")
 
+  implicit val authMode: AuthMode.Value = if (args.contains("--userless") || config.authMode =="userless") {
+    AuthMode.Userless
+  } else if (config.authMode =="user") {
+    AuthMode.User
+  } else {
+    throw new UnsupportedOperationException(s"auth mode ${config.authMode} is unsupported")
+  }
+
   val userAgent = new UserAgent("Vulture", "pw.byakuren.redditmonitor", "v0.1", "brod8362")
   val networkAdapter = new OkHttpNetworkAdapter(userAgent)
-  val credentials = Credentials.installedApp("Bjbe1Yeh16iPxA", s"http://localhost:58497/redditAuth")
+  val credentials: Credentials = authMode match {
+    case AuthMode.User =>
+      logger.info("Running user mode")
+      Credentials.installedApp(CLIENT_ID, REDIRECT_URL)
+    case AuthMode.Userless =>
+      logger.info("Running in userless mode")
+      Credentials.userlessApp(CLIENT_ID, UUID.randomUUID())
+  }
 
-  //Before showing the user the URL, the HTTP server needs to be running to listen for the redirect.
-  val helper = OAuthHelper.interactive(networkAdapter, credentials)
-  //https://www.reddit.com/dev/api/oauth/ for a list of all scopes
-  val authUrl = helper.getAuthorizationUrl(true, false, "save", "vote", "read", "privatemessages", "identity")
+  val redditClientFuture: Future[Option[RedditClient]] = authMode match {
+    case AuthMode.User =>
+      //Before showing the user the URL, the HTTP server needs to be running to listen for the redirect.
+      val helper = OAuthHelper.interactive(networkAdapter, credentials)
+      //https://www.reddit.com/dev/api/oauth/ for a list of all scopes
+      val authUrl = helper.getAuthorizationUrl(true, false, "save", "vote", "read", "privatemessages", "identity")
+      Option(Desktop.getDesktop) match {
+        case Some(desktop) if desktop.isSupported(Desktop.Action.BROWSE) && !args.contains("--noBrowser") =>
+          desktop.browse(new URL(authUrl).toURI)
+        case _ =>
+          println(s"Click here to authenticate: $authUrl")
+      }
+      EasyRedditOAuth.authenticate(helper)
+    case AuthMode.Userless =>
+      val rcp = Promise[Option[RedditClient]]
+      rcp.complete(Try {
+        Some(OAuthHelper.automatic(networkAdapter, credentials))
+      })
+      rcp.future
+  }
 
-  val redditClientFuture: Future[Option[RedditClient]] = EasyRedditOAuth.authenticate(helper)
   //TODO store token or w/e so you dont have to authenticate every time
 
-    Option(Desktop.getDesktop) match {
-    case Some(desktop) if desktop.isSupported(Desktop.Action.BROWSE) && !args.contains("--noBrowser") =>
-      desktop.browse(new URL(authUrl).toURI)
-    case _ =>
-      println(s"Click here to authenticate: $authUrl")
-  }
+
 
   redditClientFuture onComplete {
     case Success(clientOption) =>
@@ -73,7 +102,7 @@ object Vulture extends App {
         case Some(client) =>
           implicit val _client: RedditClient = client
           logger.info("Entering execution loop")
-          val vultureClient = new VultureClient()
+          val vultureClient = new VultureClient
           vultureClient.run()
         case None =>
           logger.severe("big ouchie")

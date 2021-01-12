@@ -5,6 +5,7 @@ import jsonmodels.vultureconfig.{Actions, VultureConfig, Watchers}
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.Submission
 import net.dean.jraw.references.SubredditReference
+import pw.byakuren.redditmonitor.AuthMode.AuthMode
 import pw.byakuren.redditmonitor.watcher.action.{ActionsParser, SubmissionAction}
 
 import java.util.logging.Logger
@@ -72,7 +73,7 @@ object VultureWatcher {
 
   private var nextId = -1
 
-  def fromConfigWatcher(watcher: Watchers, client: RedditClient): VultureWatcher = {
+  def fromConfigWatcher(watcher: Watchers, client: RedditClient)(implicit authMode: AuthMode): VultureWatcher = {
     nextId += 1
     new VultureWatcher(
       nextId,
@@ -88,11 +89,11 @@ object VultureWatcher {
   }
 
 
-  def loadAllFromConfiguration(client: RedditClient)(implicit config: VultureConfig): Seq[VultureWatcher] = {
+  def loadAllFromConfiguration(client: RedditClient)(implicit config: VultureConfig, authMode: AuthMode): Seq[VultureWatcher] = {
     config.watchers.map(fromConfigWatcher(_, client))
   }
 
-  private def parseActions(actions: Seq[Actions]): Seq[SubmissionAction] = {
+  private def parseActions(actions: Seq[Actions])(implicit authMode: AuthMode): Seq[SubmissionAction] = {
     actions.map(ActionsParser.parse).map(_.getOrElse(throw new Exception(s"some action was not found, check config")))
   }
 

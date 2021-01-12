@@ -6,13 +6,14 @@ import jsonmodels.vultureconfig.VultureConfig
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.{Submission, SubredditSort}
 import net.dean.jraw.references.SubredditReference
+import pw.byakuren.redditmonitor.AuthMode.AuthMode
 
 import java.util.concurrent.{BlockingQueue, Executors, LinkedBlockingQueue, TimeUnit}
 import java.util.logging.Logger
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-class VultureClient(implicit client: RedditClient, config: VultureConfig) extends Runnable {
+class VultureClient(implicit client: RedditClient, config: VultureConfig, authMode: AuthMode) extends Runnable {
 
   private val internalThreadPool = Executors.newScheduledThreadPool(config.maxThreads.toInt)
 

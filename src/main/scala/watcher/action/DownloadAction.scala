@@ -4,6 +4,7 @@ package watcher.action
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.Submission
 import play.api.libs.json.Json
+import pw.byakuren.redditmonitor.AuthMode.AuthMode
 
 import java.io.{File, FileOutputStream}
 import java.net.URL
@@ -79,4 +80,6 @@ class DownloadAction(pathStr: String, namingFormat: String = "%id%") extends Sub
     replacements.foreach(t => str = str.replace(t._1, t._2.getOrElse("null")))
     str+".json"
   }
+
+  override def minimumAuthLevel: AuthMode = AuthMode.Userless
 }

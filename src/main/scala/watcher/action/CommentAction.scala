@@ -2,6 +2,7 @@ package pw.byakuren.redditmonitor
 package watcher.action
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.Submission
+import pw.byakuren.redditmonitor.AuthMode.AuthMode
 
 class CommentAction(content: String) extends SubmissionAction {
   override def name: String = "comment"
@@ -15,4 +16,6 @@ class CommentAction(content: String) extends SubmissionAction {
   override def create(args: Seq[Any]): SubmissionAction = {
     new CommentAction(args.head.toString)
   }
+
+  override def minimumAuthLevel: AuthMode = AuthMode.User
 }

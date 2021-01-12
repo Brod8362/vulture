@@ -5,6 +5,7 @@ import club.minnced.discord.webhook.WebhookClient
 import club.minnced.discord.webhook.send.{WebhookEmbed, WebhookEmbedBuilder, WebhookMessage, WebhookMessageBuilder}
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.Submission
+import pw.byakuren.redditmonitor.AuthMode.AuthMode
 
 class WebhookAction(url: String, extraContent: Option[String] = None) extends SubmissionAction {
 
@@ -39,4 +40,6 @@ class WebhookAction(url: String, extraContent: Option[String] = None) extends Su
   }
 
   override def create(args: Seq[Any]): SubmissionAction = new WebhookAction(args.head.toString)
+
+  override def minimumAuthLevel: AuthMode = AuthMode.Userless
 }
