@@ -25,6 +25,8 @@ object Vulture extends App {
   private val CLIENT_ID = "Bjbe1Yeh16iPxA"
   private val REDIRECT_URL = "http://localhost:58497/redditAuth"
 
+  private val CURRENT_CONFIG_VERSION = 1
+
   private val CONFIG_FILE_PATH: String = args.find(_.matches("--config=.*")) match {
     case Some(cfgStr) =>
       cfgStr.split("=").last
@@ -51,6 +53,11 @@ object Vulture extends App {
   val configFile = new File(CONFIG_FILE_PATH)
   implicit val config: VultureConfig = Json.parse(new FileInputStream(configFile)).as[VultureConfig]
   logger.info(s"Loaded config file $CONFIG_FILE_PATH")
+
+  if (config.configVersion < CURRENT_CONFIG_VERSION) {
+    throw new RuntimeException(s"Your config file is version ${config.configVersion.toInt}," +
+      s" but the currently supported version is $CURRENT_CONFIG_VERSION. Please check the github page for how to update.")
+  }
 
   implicit val authMode: AuthMode.Value = if (args.contains("--userless") || config.authMode =="userless") {
     AuthMode.Userless
