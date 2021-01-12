@@ -10,7 +10,6 @@ import net.dean.jraw.references.SubredditReference
 import java.util.concurrent.{BlockingQueue, Executors, LinkedBlockingQueue, TimeUnit}
 import java.util.logging.Logger
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters._
 
 class VultureClient(implicit client: RedditClient, config: VultureConfig) extends Runnable {
@@ -31,7 +30,7 @@ class VultureClient(implicit client: RedditClient, config: VultureConfig) extend
     monitoredSubreddits.map(sr => (sr, new LinkedBlockingQueue[Submission])).toMap
 
   //This is here to ensure a post won't be acted on several times
-  private var actedOnIds: ArrayBuffer[String] = new ArrayBuffer[String]()
+  private var actedOnIds: mutable.HashSet[String] = new mutable.HashSet[String]()
 
   private val subredditIntervals: Map[SubredditReference, Int] = vultureWatchers.groupMap(_.subreddit)(vw => vw.interval)
     .map(t => (t._1, t._2.sortWith(_ > _).head)) //get smallest of all watchers
@@ -43,7 +42,18 @@ class VultureClient(implicit client: RedditClient, config: VultureConfig) extend
 
   override def run(): Unit = {
     monitoredSubreddits.foreach(subreddit => {
+      /*
+      A subreddit's interval is determined by the LOWEST interval of all watchers configured to that subreddit.
+      This is done to avoid querying for the same posts multiple times, hopefully helping save API calls and
+      steering away from the rate limit.
+       */
       val interval = subredditIntervals(subreddit)
+
+      /*
+      A subreddit's maximum fetch is determined in a similar way to the interval, except it uses the LARGEST
+      fetch of all of the watchers configured to a given subreddit. This is simply so a watcher expecting X posts
+      does not get < X posts. This wouldn't break anything, but it would also not be the intended behavior.
+       */
       val maxFetch = subredditMaxFetch(subreddit)
       logger.info(s"r/${subreddit.getSubreddit} will fetch up to $maxFetch new posts every $interval seconds")
       internalThreadPool.scheduleAtFixedRate(() => {
@@ -55,16 +65,37 @@ class VultureClient(implicit client: RedditClient, config: VultureConfig) extend
       },
         0, interval, TimeUnit.SECONDS)
     })
-    vultureWatchers.foreach(watcher => {
-      internalThreadPool.execute(() => {
-        while (true) {
-          val post = newPosts(watcher.subreddit).take()
-          if (!actedOnIds.contains(post.getUniqueId) && watcher.checkThenAct(post)) {
-            logger.fine(s"Handling post ${post.getUniqueId} from r/${post.getSubreddit}")
-            actedOnIds += post.getUniqueId
+
+    /*
+    The previous implementation of this did not support multiple watchers of the same subreddit,
+    even though the rest of the foundation is there. There was a race condition as multiple
+    threads would consume from the same queue, meaning threads would be starved or just miss posts.
+    Now it should do that properly.
+
+    This maybe still be able to be improved by dispatching each watcher with it's own thread when a post is consumed,
+    but it's far more likely that would cause more issues than the potential performance gains that could be had.
+    There would be an excessively large number of threads for even a sensible/moderate configuration.
+    Doing this sequentially may be slower and introduce bottlenecks, but it's better than rapidly hitting the API rate limit.
+     */
+    monitoredSubredditMap.foreach(t => {
+      val queue = newPosts(t._1)
+      while (true) {
+        val post = queue.take()
+        t._2 foreach {watcher =>
+          try {
+            if (!actedOnIds.contains(post.getUniqueId) && watcher.checkThenAct(post)) {
+              logger.fine(s"${watcher.name}-${watcher.id} handling post ${post.getUniqueId} from r/${post.getSubreddit}")
+            }
+          } catch {
+            case e: Exception =>
+              e.printStackTrace()
           }
         }
-      })
+        /*
+        Add the post to the "used" ID list only after all of the watchers have had their share.
+         */
+        actedOnIds += post.getUniqueId
+      }
     })
   }
 
