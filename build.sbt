@@ -1,6 +1,6 @@
 name := "vulture"
 
-version := "0.1"
+version := "0.1a"
 
 scalaVersion := "2.13.4"
 

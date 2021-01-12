@@ -40,7 +40,7 @@ class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditRefe
     val contentMatches: Boolean = Option(post.getSelfText) match {
       case Some(content) =>
         content.matches(contentRegex)
-      case None =>
+      case _ =>
         false
     }
     if (matchEither) {

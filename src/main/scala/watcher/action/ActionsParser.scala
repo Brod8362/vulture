@@ -24,7 +24,7 @@ case object ActionsParser {
         }
       case e: NotifyAction => Some(new NotifyAction(jsonAction.arguments.content.getOrElse("no additional info configured"), jsonAction.arguments.destUser))
       case f: WebhookAction =>
-        Some(new WebhookAction(jsonAction.arguments.webhookUrl.getOrElse("no webhook URL provided")))
+        Some(new WebhookAction(jsonAction.arguments.webhookUrl.getOrElse("no webhook URL provided"), jsonAction.arguments.content))
       //general catch all
       case c: SubmissionAction => Some(c.create(Seq()))
       case _ => None

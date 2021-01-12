@@ -2,11 +2,11 @@ package pw.byakuren.redditmonitor
 package watcher.action
 
 import club.minnced.discord.webhook.WebhookClient
-import club.minnced.discord.webhook.send.{WebhookEmbed, WebhookEmbedBuilder}
+import club.minnced.discord.webhook.send.{WebhookEmbed, WebhookEmbedBuilder, WebhookMessage, WebhookMessageBuilder}
 import net.dean.jraw.RedditClient
 import net.dean.jraw.models.Submission
 
-class WebhookAction(url: String) extends SubmissionAction {
+class WebhookAction(url: String, extraContent: Option[String] = None) extends SubmissionAction {
 
   private val webhookClient = WebhookClient.withUrl(url)
 
@@ -20,11 +20,22 @@ class WebhookAction(url: String) extends SubmissionAction {
       .setDescription(Option(post.getSelfText).getOrElse("") take 100)
       .setColor(0xFFFF00)
 
-    if (Option(post.getThumbnail).getOrElse("") != "") {
-      embed.setThumbnailUrl(post.getThumbnail)
+    Option(post.getThumbnail) match {
+      case Some(url) if url != "" && url != "self" =>
+        embed.setThumbnailUrl(url)
+      case _ =>
     }
 
-    webhookClient.send(embed.build())
+    val msgBuilder = new WebhookMessageBuilder()
+      .addEmbeds(embed.build())
+      .setContent(extraContent.orNull)
+
+    try {
+      webhookClient.send(msgBuilder.build())
+    } catch {
+      case e:Exception =>
+        e.printStackTrace()
+    }
   }
 
   override def create(args: Seq[Any]): SubmissionAction = new WebhookAction(args.head.toString)
