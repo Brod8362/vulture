@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vulture Configuration Tool</title>
+
+    <!--
+    IMPORTANT: I AM NOT A WEB DEVELOPER.
+    I DO NOT LIKE JAVASCRIPT, HTML, CSS, OR ANYTHING TO DO WITH THE ABOVE.
+    THIS IS PRETTY BAD. I KNOW. I DO NOT CARE.
+    -->
+
+    <script>
+        let nextId = 0;
+
+        function getTemplate(name) {
+            const cloned = document.getElementById("template-"+name).cloneNode(true);
+            if (cloned == null) {
+                return null;
+            }
+            //avoid duplicate IDs
+            cloned.id=Math.random().toString(36).substring(7);
+            return cloned;
+        }
+
+        function generate() {
+            const json = {
+                name: document.getElementById("name").value,
+                subreddit: document.getElementById("subreddit").value,
+            };
+            const ids = ["titleRegex", "contentRegex", "matchEither", "checkInterval", "maxPosts"];
+            ids.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem.value != null && elem.value !== "") {
+                    if (elem.getAttribute("type") !== "checkbox") {
+                        json[id] = elem.value;
+                    } else {
+                        json[id] = elem.checked;
+                    }
+                }
+            })
+
+            const actions = [];
+            const actionGroupElem = document.getElementById("actions");
+            for (let i = 2; i < actionGroupElem.children.length; i++) {
+                const elem = actionGroupElem.children[i];
+                let tAction = {};
+                tAction["type"] = elem.firstElementChild.value; //dropdown menu
+                tAction["arguments"] = {};
+                //within the div that the dropdown menu has is another div that's the template. this should be the last child.
+                //inside of THAT div there are one or more label elements. inside of the label elements is the input field we're looking for
+                const templateDiv = elem.lastElementChild;
+                console.log(templateDiv);
+                for (let j = 0; j < templateDiv.children.length; j++) {
+                    const h = templateDiv.children[j];
+                    console.log(h);
+                    console.log(j);
+                    tAction.arguments[h.lastElementChild.name] = h.lastElementChild.value;
+                }
+                actions.push(tAction);
+            }
+            json["actions"] = actions;
+
+            document.getElementById("output").value = JSON.stringify(json);
+        }
+
+        function addAction() {
+            const n = document.createElement("div");
+            const type = document.getElementById("actionTypes").cloneNode(true);
+            type.id = "action-"+nextId++;
+            type.style.visibility = "visible";
+            n.appendChild(type);
+            document.getElementById("actions").appendChild(n);
+            type.addEventListener("change", function() {
+                const cur = type.value;
+                for (let i = 0; i < n.children.length; i++) {
+                    //remove all children except the dropdown menu
+                    const child = n.children[i];
+                    if (child.name !== "dropdown")
+                        n.removeChild(child);
+                }
+                const template = getTemplate(cur);
+                if (template != null) {
+                    n.appendChild(template);
+                }
+            })
+        }
+    </script>
+</head>
+<body>
+
+
+<div hidden id="inputTemplates">
+    <div id="template-webhook">
+        <label>
+            Webhook URL
+            <input required name="webhookUrl" type="url">
+        </label>
+        <label>
+            Content (opt)
+            <input name="content" type="text">
+        </label>
+    </div>
+    <div id="template-message">
+        <label>
+            Message Title
+            <input required name="title" type="text">
+        </label>
+        <label>
+            Message Content
+            <input required name="content" type="text">
+        </label>
+    </div>
+    <div id="template-comment">
+        <label>
+            Comment content
+            <input required name="content" type="text">
+        </label>
+    </div>
+    <div id="template-download">
+        <label>
+            Download path
+            <input required name="downloadPath" type="text">
+        </label>
+        <label>
+            File name format (opt, see github for more info)
+            <input name="fileFormat" type="text">
+        </label>
+    </div>
+    <div id="template-notify">
+        <label>
+            Content (opt)
+            <input name="content" type="text">
+        </label>
+        <label>
+            Destination user (opt)
+            <input name="destUser" type="text">
+        </label>
+    </div>
+</div>
+<select style="visibility: hidden" id="actionTypes" name="dropdown">
+    <option value="nothing">nothing</option>
+    <option value="notify">notify</option>
+    <option value="webhook">webhook</option>
+    <option value="upvote">upvote</option>
+    <option value="downvote">downvote</option>
+    <option value="comment">comment</option>
+    <option value="save">save</option>
+    <option value="download">download</option>
+    <option value="message">message</option>
+</select>
+
+<h2> Vulture Configurator </h2>
+<br>
+<label for="name">Name:</label>
+<input type="text" id="name" required>
+<br>
+<label for="subreddit">Subreddit:</label>
+<input type="text" id="subreddit" required>
+<br>
+<label for="titleRegex">Title Regex (optional):</label>
+<input type="text" id="titleRegex">
+<br>
+<label for="contentRegex">Content Regex (optional):</label>
+<input type="text" id="contentRegex">
+<br>
+<label for="matchEither">Match either title or content:</label>
+<input type="checkbox" id="matchEither">
+<br>
+<label for="checkInterval">Post fetch interval (optional):</label>
+<input type="number" id="checkInterval">
+<br>
+<label for="maxPosts">Max posts per fetch (optional):</label>
+<input type="number" id="maxPosts">
+
+<div id="actions" style="border-style: dotted">
+    <u>Actions</u>
+    <button onclick="addAction()">Add Action...</button>
+</div>
+<br>
+
+<!-- Submit button -->
+<hr>
+<button onclick="generate()">Submit</button>
+
+
+<label for="output">JSON output</label>
+<textarea id="output" readonly></textarea>
+</body>
+</html>

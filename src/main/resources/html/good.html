@@ -1,4 +1,22 @@
-<h1> Success </h1>
-<hr><br>
-Vulture successfully authenticated.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script>
+        setTimeout(function () {
+            location.replace("http://localhost:58497/status")
+        }, 5000);
+    </script>
+    <title>Vulture Authentication</title>
+</head>
+<body>
+    <h1> Success </h1>
+    <hr><br>
+    Vulture successfully authenticated.
+    You will be automatically redirected to the status page.
 
+    <noscript>
+        Javascript isn't enabled, click here to manually go to the status page.
+        <a href="http://localhost:58497/status">Go to the status page</a>
+    </noscript>
+</body>
