@@ -92,11 +92,7 @@ object Vulture extends App {
       }
       EasyRedditOAuth.authenticate(helper)
     case AuthMode.Userless =>
-      val rcp = Promise[Option[RedditClient]]
-      rcp.complete(Try {
-        Some(OAuthHelper.automatic(networkAdapter, credentials))
-      })
-      rcp.future
+      Future.successful(Some(OAuthHelper.automatic(networkAdapter, credentials)))
   }
 
   //TODO store token or w/e so you dont have to authenticate every time

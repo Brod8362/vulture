@@ -9,7 +9,7 @@ import net.dean.jraw.references.SubredditReference
 import pw.byakuren.redditmonitor.AuthMode.AuthMode
 
 import java.util.concurrent.{BlockingQueue, Executors, LinkedBlockingQueue, TimeUnit}
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
@@ -78,7 +78,7 @@ class VultureClient(implicit client: RedditClient, config: VultureConfig, authMo
     There would be an excessively large number of threads for even a sensible/moderate configuration.
     Doing this sequentially may be slower and introduce bottlenecks, but it's better than rapidly hitting the API rate limit.
      */
-    monitoredSubredditMap.foreach(t => {
+    monitoredSubredditMap.foreach(t => internalThreadPool.execute { () =>
       val queue = newPosts(t._1)
       while (true) {
         val post = queue.take()
@@ -89,7 +89,7 @@ class VultureClient(implicit client: RedditClient, config: VultureConfig, authMo
             }
           } catch {
             case e: Exception =>
-              e.printStackTrace()
+              logger.log(Level.SEVERE, e.getMessage, e)
           }
         }
         /*
