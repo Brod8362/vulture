@@ -67,6 +67,8 @@ class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditRefe
       }
     })
   }
+
+  override def toString = s"VultureWatcher-$id '$name' (/r/${subreddit.getSubreddit}))"
 }
 
 object VultureWatcher {

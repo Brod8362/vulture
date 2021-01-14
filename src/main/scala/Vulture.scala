@@ -1,7 +1,7 @@
 package pw.byakuren.redditmonitor
 
 
-import auth.EasyRedditOAuth
+import auth.VultureHTTP
 
 import jsonmodels.vultureconfig.VultureConfig
 import net.dean.jraw.RedditClient
@@ -78,6 +78,8 @@ object Vulture extends App {
       Credentials.userlessApp(CLIENT_ID, UUID.randomUUID())
   }
 
+  val http = new VultureHTTP(() => { stop() })
+
   val redditClientFuture: Future[Option[RedditClient]] = authMode match {
     case AuthMode.User =>
       //Before showing the user the URL, the HTTP server needs to be running to listen for the redirect.
@@ -90,14 +92,12 @@ object Vulture extends App {
         case _ =>
           println(s"Click here to authenticate: $authUrl")
       }
-      EasyRedditOAuth.authenticate(helper)
+      http.authenticate(helper)
     case AuthMode.Userless =>
       Future.successful(Some(OAuthHelper.automatic(networkAdapter, credentials)))
   }
 
   //TODO store token or w/e so you dont have to authenticate every time
-
-
 
   redditClientFuture onComplete {
     case Success(clientOption) =>
@@ -106,6 +106,7 @@ object Vulture extends App {
           implicit val _client: RedditClient = client
           logger.info("Entering execution loop")
           val vultureClient = new VultureClient
+          http.vultureClientOption = Some(vultureClient)
           vultureClient.run()
         case None =>
           logger.severe("big ouchie")
@@ -113,6 +114,11 @@ object Vulture extends App {
     case Failure(t) =>
       logger.severe(s"Error occurred when authenticating. ($t)")
       t.printStackTrace()
+  }
+
+  def stop(): Unit = {
+    logger.info("Exit requested from HTTP server")
+    System.exit(0)
   }
 
 }

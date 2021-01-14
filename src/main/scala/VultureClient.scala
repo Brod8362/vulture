@@ -13,18 +13,18 @@ import java.util.logging.{Level, Logger}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-class VultureClient(implicit client: RedditClient, config: VultureConfig, authMode: AuthMode) extends Runnable {
+class VultureClient(implicit val client: RedditClient, config: VultureConfig, authMode: AuthMode) extends Runnable {
 
   private val internalThreadPool = Executors.newScheduledThreadPool(config.maxThreads.toInt)
 
-  private val vultureWatchers = VultureWatcher.loadAllFromConfiguration(client)
+  val vultureWatchers: Seq[VultureWatcher] = VultureWatcher.loadAllFromConfiguration(client)
 
   private val monitoredSubredditMap: Map[SubredditReference, Seq[VultureWatcher]] = vultureWatchers.groupBy(_.subreddit)
 
-  private def monitoredSubreddits: Seq[SubredditReference] = monitoredSubredditMap.keys.toSeq
+  def monitoredSubreddits: Seq[SubredditReference] = monitoredSubredditMap.keys.toSeq
 
   //todo memory concern: this will grow in size unbounded until OOM.
-  private val seenPosts: Map[SubredditReference, mutable.HashSet[String]] =
+  val seenPosts: Map[SubredditReference, mutable.HashSet[String]] =
     monitoredSubreddits.map((_, new mutable.HashSet[String]())).toMap
 
   private val newPosts: Map[SubredditReference, BlockingQueue[Submission]] =
