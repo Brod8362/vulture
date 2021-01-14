@@ -9,10 +9,15 @@ import pw.byakuren.redditmonitor.AuthMode.AuthMode
 import pw.byakuren.redditmonitor.watcher.action.{ActionsParser, SubmissionAction}
 
 import java.util.logging.Logger
+import java.util.regex.Pattern
 
 //todo add actions once they're implemented
 class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditReference, val interval: Int, matchEither: Boolean,
                      val maxPosts: Int, titleRegex: String, contentRegex: String, actions: Seq[SubmissionAction]) {
+
+  //todo make the regex flags configurable
+  private val titlePattern = Pattern.compile(titleRegex, Pattern.DOTALL|Pattern.CASE_INSENSITIVE)
+  private val contentPattern = Pattern.compile(contentRegex, Pattern.DOTALL|Pattern.CASE_INSENSITIVE)
 
   private val logger = Logger.getLogger(s"VultureWatcher-$id(r/${subreddit.getSubreddit})")
 
@@ -37,10 +42,10 @@ class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditRefe
    * @return whether or not the client should act
    */
   def willAct(post: Submission): Boolean = {
-    val titleMatches = post.getTitle.matches(titleRegex)
+    val titleMatches = titlePattern.matcher(post.getTitle).matches()
     val contentMatches: Boolean = Option(post.getSelfText) match {
       case Some(content) =>
-        content.matches(contentRegex)
+        contentPattern.matcher(content).matches()
       case _ =>
         false
     }
