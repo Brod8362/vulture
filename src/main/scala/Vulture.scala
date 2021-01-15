@@ -11,12 +11,14 @@ import play.api.libs.json.Json
 
 import java.awt.Desktop
 import java.io.{File, FileInputStream, FileOutputStream}
-import java.net.URL
+import java.net.{InetAddress, URL}
+import java.nio.file.{Files, Paths}
 import java.util.UUID
 import java.util.logging.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
+import scala.jdk.CollectionConverters._
 
 
 object Vulture extends App {
@@ -26,14 +28,30 @@ object Vulture extends App {
 
   private val CURRENT_CONFIG_VERSION = 1
 
+  private val UUID_PATH = Paths.get(".vulture/uuid")
+
+  val logger = Logger.getLogger("Vulture MainThread")
+
+  new File(".vulture/").mkdirs()
+
+  private val DEVICE_UUID: UUID = if (Files.exists(UUID_PATH)) {
+    logger.info("Reading existing UUID")
+    UUID.fromString(Files.readAllLines(UUID_PATH).asScala.mkString(""))
+  } else {
+    logger.info("Using new UUID")
+    val tempId = UUID.randomUUID()
+    val output = new FileOutputStream(new File(".vulture/uuid"))
+    output.write(tempId.toString.getBytes)
+    output.close()
+    tempId
+  }
+
   private val CONFIG_FILE_PATH: String = args.find(_.matches("--config=.*")) match {
     case Some(cfgStr) =>
       cfgStr.split("=").last
     case None =>
       "vultureConfig.json"
   }
-
-  val logger = Logger.getLogger("Vulture MainThread")
 
   def exportDefaultConfig(filePath: String = CONFIG_FILE_PATH): Unit = {
     logger.info(s"Exporting default config to $filePath")
@@ -67,9 +85,9 @@ object Vulture extends App {
       s" but the currently supported version is $CURRENT_CONFIG_VERSION. Please check the github page for how to update.")
   }
 
-  implicit val authMode: AuthMode.Value = if (args.contains("--userless") || config.authMode =="userless") {
+  implicit val authMode: AuthMode.Value = if (args.contains("--userless") || config.authMode == "userless") {
     AuthMode.Userless
-  } else if (config.authMode =="user") {
+  } else if (config.authMode == "user") {
     AuthMode.User
   } else {
     throw new UnsupportedOperationException(s"auth mode ${config.authMode} is unsupported")
@@ -83,10 +101,12 @@ object Vulture extends App {
       Credentials.installedApp(CLIENT_ID, REDIRECT_URL)
     case AuthMode.Userless =>
       logger.info("Running in userless mode")
-      Credentials.userlessApp(CLIENT_ID, UUID.randomUUID())
+      Credentials.userlessApp(CLIENT_ID, DEVICE_UUID)
   }
 
-  val http = new VultureHTTP(() => { stop() })
+  val http = new VultureHTTP(() => {
+    stop()
+  })
 
   val redditClientFuture: Future[Option[RedditClient]] = authMode match {
     case AuthMode.User =>
