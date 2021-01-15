@@ -35,6 +35,14 @@ On the first run, `vultureConfig.json` will be automatically created with the de
 very sensible or useful, so it's important to understand how to configure them to your liking. See below for
 configuration.
 
+Command Line Options
+====================
+`--config=path/to/file.json` Read config from `path/to/file.json` instead of `vultureConfig.json`.  
+
+`--exportDefaults`, `--exportDefaults=path/to/file` Export default config and exit
+
+`--userless` Do not log in and instead use the anonymous API. This will override the setting in the config file.
+
 Options
 =======
 __Root Options__
