@@ -13,11 +13,10 @@ import java.awt.Desktop
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.net.URL
 import java.util.UUID
-import java.util.logging.{LogManager, Logger}
-import javax.naming.ConfigurationException
+import java.util.logging.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 
 object Vulture extends App {
@@ -36,13 +35,22 @@ object Vulture extends App {
 
   val logger = Logger.getLogger("Vulture MainThread")
 
-
-  def exportDefaultConfig(): Unit = {
-    logger.info("Exporting default config")
-    val resource = scala.io.Source.fromURL(getClass.getClassLoader.getResource("json/vultureConfig.json"))
-    val fos = new FileOutputStream(new File(CONFIG_FILE_PATH))
+  def exportDefaultConfig(filePath: String = CONFIG_FILE_PATH): Unit = {
+    logger.info(s"Exporting default config to $filePath")
+    val resource = scala.io.Source.fromURL(getClass.getClassLoader.getResource("default/sensibleDefaults.json"))
+    val fos = new FileOutputStream(new File(filePath))
     fos.write(resource.mkString.getBytes)
     fos.close()
+  }
+
+  args.find(_.matches("--exportDefaults.*")) match {
+    case Some(str) if str.indexOf("=") != -1 =>
+      exportDefaultConfig(str.split("=").last)
+      System.exit(0)
+    case Some(str) if str.indexOf("=") == -1 =>
+      exportDefaultConfig()
+      System.exit(0)
+    case _ =>
   }
 
   if (!new File(CONFIG_FILE_PATH).exists) {
@@ -94,6 +102,7 @@ object Vulture extends App {
       }
       http.authenticate(helper)
     case AuthMode.Userless =>
+      println(s"Status and monitoring available at http://localhost:58497/status")
       Future.successful(Some(OAuthHelper.automatic(networkAdapter, credentials)))
   }
 

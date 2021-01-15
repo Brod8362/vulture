@@ -1,0 +1,21 @@
+{
+  "maxThreads": 32,
+  "authMode": "userless",
+  "configVersion": 1,
+  "watchers": [
+    {
+      "name": "notify all posts",
+      "subreddit": "all",
+      "checkInterval": 30,
+      "maxPosts": 20,
+      "actions": [
+        {
+          "type": "nothing",
+          "arguments": {
+            "content": "there's a new post in r/all"
+          }
+        }
+      ]
+    }
+  ]
+}
