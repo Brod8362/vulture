@@ -11,7 +11,6 @@ import pw.byakuren.redditmonitor.watcher.action.{ActionsParser, SubmissionAction
 import java.util.logging.Logger
 import java.util.regex.Pattern
 
-//todo add actions once they're implemented
 class VultureWatcher(val id: Int, val name: String, val subreddit: SubredditReference, val interval: Int, matchEither: Boolean,
                      val maxPosts: Int, titleRegex: String, contentRegex: String, actions: Seq[SubmissionAction]) {
 
