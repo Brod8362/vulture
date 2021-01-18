@@ -82,7 +82,7 @@ class VultureClient(implicit val client: RedditClient, config: VultureConfig, au
       val queue = newPosts(t._1)
       while (true) {
         val post = queue.take()
-        t._2 foreach {watcher =>
+        t._2 foreach { watcher =>
           try {
             if (!actedOnIds.contains(post.getUniqueId) && watcher.checkThenAct(post)) {
               logger.fine(s"${watcher.name}-${watcher.id} handling post ${post.getUniqueId} from r/${post.getSubreddit}")
@@ -98,6 +98,17 @@ class VultureClient(implicit val client: RedditClient, config: VultureConfig, au
         actedOnIds += post.getUniqueId
       }
     })
+
+    /*
+    JRAW appears to be mostly abandoned so this is necessary. There's a bug/race condition regarding the auto
+    fetching of new tokens after the 1 hour expiry time, meaning the API will return 401 and the watcher just gives up.
+    This will automatically refresh the API token every 45 minutes giving a healthy 15 minute grace period in case
+    the internet goes down or something
+     */
+    internalThreadPool.scheduleAtFixedRate(() => {
+      logger.info("Renewing API key")
+      client.getAuthManager.renew()
+    }, 45, 45, TimeUnit.MINUTES)
   }
 
   def findNewPosts(subreddit: SubredditReference, maxFetch: Int): Set[Submission] = {

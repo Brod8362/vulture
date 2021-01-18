@@ -36,6 +36,9 @@ object Vulture extends App {
 
   val logger = Logger.getLogger("Vulture MainThread")
 
+  //Ensure the cache directory exists
+  new File(".vulture/").mkdirs()
+
   /*
   Create token store and load data.
    */
@@ -48,8 +51,6 @@ object Vulture extends App {
       logger.info("Creating token store file")
       TOKEN_PATH.toFile.createNewFile()
   }
-
-  new File(".vulture/").mkdirs()
 
   /*
     Fetch UUID from disk or generate a new one
