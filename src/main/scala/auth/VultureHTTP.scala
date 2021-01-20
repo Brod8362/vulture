@@ -5,7 +5,7 @@ import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import net.dean.jraw.RedditClient
 import net.dean.jraw.oauth.StatefulAuthHelper
 import pw.byakuren.redditmonitor.AuthMode.AuthMode
-import pw.byakuren.redditmonitor.{AuthMode, VultureClient}
+import pw.byakuren.redditmonitor.{AuthMode, MetaInfo, VultureClient}
 
 import java.util.logging.{LogManager, Logger}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -111,7 +111,8 @@ class VultureHTTP(stopCallback: () => Unit)(implicit authMode: AuthMode) {
       "$subCount" -> vultureClient.monitoredSubreddits.size.toString,
       "$watcherCount" -> vultureClient.vultureWatchers.size.toString,
       "$watcherInfo" -> vultureClient.vultureWatchers.mkString("\n"),
-      "$postsScanned" -> vultureClient.seenPosts.map(_._2.size).sum.toString
+      "$postsScanned" -> vultureClient.seenPosts.map(_._2.size).sum.toString,
+      "$version" -> MetaInfo.VERSION
     )
 
     val imp = replaceMap.foldLeft(stringContent) { (s, t) =>
@@ -122,7 +123,7 @@ class VultureHTTP(stopCallback: () => Unit)(implicit authMode: AuthMode) {
   }
 
   private def replyOK(httpExchange: HttpExchange, content: Array[Byte]): Unit = {
-    httpExchange.sendResponseHeaders(200, content.size)
+    httpExchange.sendResponseHeaders(200, content.length)
     val os = httpExchange.getResponseBody
     os.write(content)
     os.close()

@@ -36,6 +36,8 @@ object Vulture extends App {
 
   val logger = Logger.getLogger("Vulture MainThread")
 
+  logger.info(s"Vulture version ${MetaInfo.VERSION}")
+
   //Ensure the cache directory exists
   new File(".vulture/").mkdirs()
 

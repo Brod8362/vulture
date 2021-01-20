@@ -1,7 +1,5 @@
 name := "vulture"
 
-version := "0.1a"
-
 scalaVersion := "2.13.4"
 
 idePackagePrefix := Some("pw.byakuren.redditmonitor")
@@ -13,12 +11,13 @@ libraryDependencies ++= Seq("net.dean.jraw" % "JRAW" % "1.1.0",
   "club.minnced" % "discord-webhooks" % "0.5.4-rc")
 
 enablePlugins(SbtJsonPlugin)
+enablePlugins(GitVersioning)
+git.useGitDescribe := true
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
   case x => MergeStrategy.first
 }
-
 
 //sbt-json settings
 
